@@ -57,11 +57,8 @@ impl AnafClient {
 impl AnafClient {
     /// Initiates the VatPayer API.
     pub fn vat_payer(self, version: VatPayerApiVersion) -> VatPayerApi {
-        VatPayerApi::new(
-            version.clone(),
-            self.client,
-            &format!("{}/PlatitorTvaRest/api/{}/ws/tva", self.base_url, version),
-        )
+        let url = version.url_path(&self.base_url);
+        VatPayerApi::new(version, self.client, &url)
     }
 
     /// Initiates the VatPayer Async API.

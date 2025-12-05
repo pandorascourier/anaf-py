@@ -23,7 +23,8 @@ impl VatPayerApi {
 
 impl VatPayerApi {
     pub async fn send(&self, request: Vec<ApiRequest>) -> Result<VatPayerResponse> {
-        if request.is_empty() || request.len() >= 500 {
+        let max_cuis = self.version.max_cuis();
+        if request.is_empty() || request.len() > max_cuis {
             return Err(ApiError::InvalidRequestError(request.len()));
         }
 
