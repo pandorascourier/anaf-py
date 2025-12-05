@@ -134,7 +134,7 @@ impl PyAnafClient {
         };
 
         if year < 0 {
-            return Err(PyException::new_err("Year must be positive"));
+            return Err(PyException::new_err("Year must be non-negative"));
         }
         let year_usize = year as usize;
         let request = BalanceRequest::new(registration_code, year_usize);
