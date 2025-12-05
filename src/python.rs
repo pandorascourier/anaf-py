@@ -3,7 +3,7 @@ use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use std::sync::OnceLock;
 
-use crate::{AnafClient, ApiRequest};
+use crate::{AnafClient, ApiRequest, Result};
 
 use crate::vat_payer::VatPayerApiVersion;
 
@@ -24,6 +24,29 @@ fn get_runtime() -> &'static tokio::runtime::Runtime {
         tokio::runtime::Runtime::new()
             .expect("Failed to create tokio runtime")
     })
+}
+
+/// Helper function to parse date string and create API requests
+fn parse_requests(requests: Vec<(usize, String)>) -> PyResult<Vec<ApiRequest>> {
+    requests
+        .into_iter()
+        .map(|(code, date_str)| {
+            let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
+                .map_err(|e| PyException::new_err(format!("Invalid date format: {}", e)))?;
+            Ok(ApiRequest::new(code, date))
+        })
+        .collect()
+}
+
+/// Helper function to handle API response and convert to JSON string
+fn handle_response<T: serde::Serialize>(result: Result<T>) -> PyResult<String> {
+    match result {
+        Ok(response) => {
+            serde_json::to_string(&response)
+                .map_err(|e| PyException::new_err(format!("Serialization error: {}", e)))
+        }
+        Err(e) => Err(PyException::new_err(format!("API error: {}", e))),
+    }
 }
 
 // Python wrapper for AnafClient
@@ -63,18 +86,9 @@ impl PyAnafClient {
             _ => return Err(PyException::new_err("Invalid API version. Use 7 or 8")),
         };
 
-        let api_requests: Result<Vec<ApiRequest>, PyErr> = requests
-            .into_iter()
-            .map(|(code, date_str)| {
-                let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
-                    .map_err(|e| PyException::new_err(format!("Invalid date format: {}", e)))?;
-                Ok(ApiRequest::new(code, date))
-            })
-            .collect();
-
-        let api_requests = api_requests?;
-
+        let api_requests = parse_requests(requests)?;
         let client = self.client.clone();
+        
         let result = if async_mode {
             #[cfg(feature = "vat_payer_async_api")]
             {
@@ -94,14 +108,7 @@ impl PyAnafClient {
             })
         };
 
-        match result {
-            Ok(response) => {
-                let json = serde_json::to_string(&response)
-                    .map_err(|e| PyException::new_err(format!("Serialization error: {}", e)))?;
-                Ok(json)
-            }
-            Err(e) => Err(PyException::new_err(format!("API error: {}", e))),
-        }
+        handle_response(result)
     }
 
     /// Query Balance information
@@ -137,14 +144,7 @@ impl PyAnafClient {
             client.balance(api_version).send(request).await
         });
 
-        match result {
-            Ok(response) => {
-                let json = serde_json::to_string(&response)
-                    .map_err(|e| PyException::new_err(format!("Serialization error: {}", e)))?;
-                Ok(json)
-            }
-            Err(e) => Err(PyException::new_err(format!("API error: {}", e))),
-        }
+        handle_response(result)
     }
 
     /// Query Farmers Registry information
@@ -167,30 +167,14 @@ impl PyAnafClient {
             _ => return Err(PyException::new_err("Invalid API version. Use 2")),
         };
 
-        let api_requests: Result<Vec<ApiRequest>, PyErr> = requests
-            .into_iter()
-            .map(|(code, date_str)| {
-                let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
-                    .map_err(|e| PyException::new_err(format!("Invalid date format: {}", e)))?;
-                Ok(ApiRequest::new(code, date))
-            })
-            .collect();
-
-        let api_requests = api_requests?;
+        let api_requests = parse_requests(requests)?;
         let client = self.client.clone();
 
         let result = get_runtime().block_on(async move {
             client.farmer(api_version).send(api_requests).await
         });
 
-        match result {
-            Ok(response) => {
-                let json = serde_json::to_string(&response)
-                    .map_err(|e| PyException::new_err(format!("Serialization error: {}", e)))?;
-                Ok(json)
-            }
-            Err(e) => Err(PyException::new_err(format!("API error: {}", e))),
-        }
+        handle_response(result)
     }
 
     /// Query Cults Registry information
@@ -213,30 +197,14 @@ impl PyAnafClient {
             _ => return Err(PyException::new_err("Invalid API version. Use 2")),
         };
 
-        let api_requests: Result<Vec<ApiRequest>, PyErr> = requests
-            .into_iter()
-            .map(|(code, date_str)| {
-                let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
-                    .map_err(|e| PyException::new_err(format!("Invalid date format: {}", e)))?;
-                Ok(ApiRequest::new(code, date))
-            })
-            .collect();
-
-        let api_requests = api_requests?;
+        let api_requests = parse_requests(requests)?;
         let client = self.client.clone();
 
         let result = get_runtime().block_on(async move {
             client.cult(api_version).send(api_requests).await
         });
 
-        match result {
-            Ok(response) => {
-                let json = serde_json::to_string(&response)
-                    .map_err(|e| PyException::new_err(format!("Serialization error: {}", e)))?;
-                Ok(json)
-            }
-            Err(e) => Err(PyException::new_err(format!("API error: {}", e))),
-        }
+        handle_response(result)
     }
 }
 
