@@ -1,6 +1,7 @@
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
+use std::sync::OnceLock;
 
 use crate::{AnafClient, ApiRequest};
 
@@ -15,22 +16,28 @@ use crate::farmers::FarmerApiVersion;
 #[cfg(feature = "cults_api")]
 use crate::cults::CultApiVersion;
 
+// Global shared runtime for all client instances
+static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+
+fn get_runtime() -> &'static tokio::runtime::Runtime {
+    RUNTIME.get_or_init(|| {
+        tokio::runtime::Runtime::new()
+            .expect("Failed to create tokio runtime")
+    })
+}
+
 // Python wrapper for AnafClient
 #[pyclass]
 pub struct PyAnafClient {
     client: AnafClient,
-    runtime: tokio::runtime::Runtime,
 }
 
 #[pymethods]
 impl PyAnafClient {
     #[new]
     pub fn new() -> PyResult<Self> {
-        let runtime = tokio::runtime::Runtime::new()
-            .map_err(|e| PyException::new_err(format!("Failed to create runtime: {}", e)))?;
         Ok(Self {
             client: AnafClient::new(),
-            runtime,
         })
     }
 
@@ -71,7 +78,7 @@ impl PyAnafClient {
         let result = if async_mode {
             #[cfg(feature = "vat_payer_async_api")]
             {
-                self.runtime.block_on(async move {
+                get_runtime().block_on(async move {
                     client.async_vat_payer(api_version).send(api_requests).await
                 })
             }
@@ -82,7 +89,7 @@ impl PyAnafClient {
                 ));
             }
         } else {
-            self.runtime.block_on(async move {
+            get_runtime().block_on(async move {
                 client.vat_payer(api_version).send(api_requests).await
             })
         };
@@ -119,11 +126,14 @@ impl PyAnafClient {
             _ => return Err(PyException::new_err("Invalid API version. Use 1")),
         };
 
+        if year < 0 {
+            return Err(PyException::new_err("Year must be positive"));
+        }
         let year_usize = year as usize;
         let request = BalanceRequest::new(registration_code, year_usize);
         let client = self.client.clone();
 
-        let result = self.runtime.block_on(async move {
+        let result = get_runtime().block_on(async move {
             client.balance(api_version).send(request).await
         });
 
@@ -169,7 +179,7 @@ impl PyAnafClient {
         let api_requests = api_requests?;
         let client = self.client.clone();
 
-        let result = self.runtime.block_on(async move {
+        let result = get_runtime().block_on(async move {
             client.farmer(api_version).send(api_requests).await
         });
 
@@ -215,7 +225,7 @@ impl PyAnafClient {
         let api_requests = api_requests?;
         let client = self.client.clone();
 
-        let result = self.runtime.block_on(async move {
+        let result = get_runtime().block_on(async move {
             client.cult(api_version).send(api_requests).await
         });
 

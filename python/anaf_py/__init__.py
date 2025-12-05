@@ -22,6 +22,24 @@ class AnafClient:
         """Initialize the ANAF client."""
         self._client = _PyAnafClient()
     
+    def _parse_response(self, json_str):
+        """
+        Parse JSON response string into a dictionary.
+        
+        Args:
+            json_str: JSON string from the native module
+            
+        Returns:
+            Parsed dictionary
+            
+        Raises:
+            ValueError: If the response is not valid JSON
+        """
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse API response: {e}") from e
+    
     def vat_payer(self, requests, version=8, async_mode=False):
         """
         Query VAT Payer information.
@@ -39,7 +57,7 @@ class AnafClient:
             >>> result = client.vat_payer([(49201783, "2024-01-15")])
         """
         json_str = self._client.vat_payer(requests, version, async_mode)
-        return json.loads(json_str)
+        return self._parse_response(json_str)
     
     def balance(self, registration_code, year, version=1):
         """
@@ -58,7 +76,7 @@ class AnafClient:
             >>> result = client.balance(40914732, 2022)
         """
         json_str = self._client.balance(registration_code, year, version)
-        return json.loads(json_str)
+        return self._parse_response(json_str)
     
     def farmer(self, requests, version=2):
         """
@@ -76,7 +94,7 @@ class AnafClient:
             >>> result = client.farmer([(12345678, "2024-01-15")])
         """
         json_str = self._client.farmer(requests, version)
-        return json.loads(json_str)
+        return self._parse_response(json_str)
     
     def cult(self, requests, version=2):
         """
@@ -94,7 +112,7 @@ class AnafClient:
             >>> result = client.cult([(12345678, "2024-01-15")])
         """
         json_str = self._client.cult(requests, version)
-        return json.loads(json_str)
+        return self._parse_response(json_str)
 
 __version__ = "0.1.0"
 __all__ = ["AnafClient"]
