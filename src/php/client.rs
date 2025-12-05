@@ -84,9 +84,9 @@ impl PhpAnafClient {
 
     /// Query VAT payer information for companies.
     ///
-    /// @param array $requests List of [cui, date] arrays (max 500).
+    /// @param array $requests List of [cui, date] arrays (max 100 for V9, 500 for V8/V7).
     ///                        Use today's date in YYYY-MM-DD format.
-    /// @param ?string $version API version to use ("V8" = default).
+    /// @param ?string $version API version to use ("V9" = default, "V8", "V7").
     /// @return VatPayerResponse Response with company information.
     pub fn get_vat_payer(
         &self,
@@ -94,7 +94,9 @@ impl PhpAnafClient {
         version: Option<String>,
     ) -> PhpResult<PhpVatPayerResponse> {
         let version = match version.as_deref() {
-            Some("V8") | None => VatPayerApiVersion::V8,
+            Some("V8") => VatPayerApiVersion::V8,
+            Some("V7") => VatPayerApiVersion::V7,
+            Some("V9") | None => VatPayerApiVersion::V9,
             _ => VatPayerApiVersion::default(),
         };
         let api_requests = parse_requests(requests)?;
@@ -112,8 +114,8 @@ impl PhpAnafClient {
     ///
     /// This is the async variant that supports more requests.
     ///
-    /// @param array $requests List of [cui, date] arrays (max 500).
-    /// @param ?string $version API version to use ("V8" = default).
+    /// @param array $requests List of [cui, date] arrays (max 100 for V9, 500 for V8/V7).
+    /// @param ?string $version API version to use ("V9" = default, "V8", "V7").
     /// @return VatPayerResponse Response with company information.
     #[cfg(feature = "vat_payer_async_api")]
     pub fn get_vat_payer_async(
@@ -122,7 +124,9 @@ impl PhpAnafClient {
         version: Option<String>,
     ) -> PhpResult<PhpVatPayerResponse> {
         let version = match version.as_deref() {
-            Some("V8") | None => VatPayerApiVersion::V8,
+            Some("V8") => VatPayerApiVersion::V8,
+            Some("V7") => VatPayerApiVersion::V7,
+            Some("V9") | None => VatPayerApiVersion::V9,
             _ => VatPayerApiVersion::default(),
         };
         let api_requests = parse_requests(requests)?;

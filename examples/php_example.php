@@ -41,33 +41,33 @@ try {
         [18158683, $today]
     ]);
     
-    echo "Response status: {$response->status}\n";
-    echo "Response message: {$response->message}\n";
-    echo "Found {$response->count()} companies\n\n";
+    echo "Response status: " . $response->getStatus() . "\n";
+    echo "Response message: " . $response->getMessage() . "\n";
+    echo "Found " . $response->count() . " companies\n\n";
     
     if ($response->count() > 0) {
         $company = $response->first();
-        $data = $company->generalData;
+        $data = $company->getGeneralData();
         
         echo "Company Information:\n";
-        echo "  Name: {$data->name}\n";
-        echo "  CUI: {$data->cui}\n";
-        echo "  Address: {$data->address}\n";
-        echo "  CAEN Code: {$data->caenCode}\n";
-        echo "  Trade Register: {$data->tradeRegisterNumber}\n";
-        echo "  RO e-Factura: " . ($data->roEfacturaStatus ? 'Yes' : 'No') . "\n";
+        echo "  Name: " . $data->getName() . "\n";
+        echo "  CUI: " . $data->getCui() . "\n";
+        echo "  Address: " . $data->getAddress() . "\n";
+        echo "  CAEN Code: " . $data->getCaenCode() . "\n";
+        echo "  Trade Register: " . $data->getTradeRegisterNumber() . "\n";
+        echo "  RO e-Factura: " . ($data->getRoEfacturaStatus() ? 'Yes' : 'No') . "\n";
         
         echo "\nVAT Registration:\n";
-        $vat = $company->vatRegistration;
-        echo "  Is VAT Payer: " . ($vat->isRegistered ? 'Yes' : 'No') . "\n";
+        $vat = $company->getVatRegistration();
+        echo "  Is VAT Payer: " . ($vat->getIsRegistered() ? 'Yes' : 'No') . "\n";
         
         echo "\nInactivity Status:\n";
-        $inactive = $company->inactivityStatus;
-        echo "  Is Inactive: " . ($inactive->isInactive ? 'Yes' : 'No') . "\n";
+        $inactive = $company->getInactivityStatus();
+        echo "  Is Inactive: " . ($inactive->getIsInactive() ? 'Yes' : 'No') . "\n";
         
         echo "\nSplit VAT:\n";
-        $split = $company->splitVat;
-        echo "  Uses Split VAT: " . ($split->isApplied ? 'Yes' : 'No') . "\n";
+        $split = $company->getSplitVat();
+        echo "  Uses Split VAT: " . ($split->getIsApplied() ? 'Yes' : 'No') . "\n";
     }
     
 } catch (Exception $e) {
