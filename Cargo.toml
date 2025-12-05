@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[lib]
+name = "anaf_py"
+crate-type = ["cdylib", "rlib"]
+
 [features]
 default = ["vat_payer_async_api", "balance_api", "cults_api", "farmers_api"]
 vat_payer_async_api = []
@@ -14,6 +18,7 @@ farmers_api = []
 [dependencies]
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
+pyo3 = { version = "0.22", features = ["extension-module", "chrono"] }
 reqwest = { version = "0.11", default-features = false, features = [
     "rustls-tls",
     "json",
@@ -22,6 +27,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_qs = "0.12"
 thiserror = "1.0"
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
