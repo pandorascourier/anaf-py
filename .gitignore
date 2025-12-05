@@ -1,2 +1,10 @@
 target
 Cargo.lock
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.so
+*.egg-info
+dist
+build

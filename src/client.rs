@@ -34,6 +34,7 @@ use crate::farmers::{FarmerApi, FarmerApiVersion};
 /// let response = client.vat_payer(VatPayerApiVersion::V7).send(vat_payer_request).await?;
 ///
 /// ```
+#[derive(Clone)]
 pub struct AnafClient {
     base_url: String,
     client: Client,
