@@ -1,0 +1,42 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "anaf-api"
+version = "0.1.0"
+description = "High-performance ANAF (Romanian Fiscal Administration) API client with Python bindings"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [
+    { name = "pandorascourier" }
+]
+keywords = ["anaf", "romania", "fiscal", "vat", "api", "rust"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/pandorascourier/anaf-py"
+Repository = "https://github.com/pandorascourier/anaf-py"
+
+[tool.maturin]
+# Build with Python feature enabled
+features = ["python", "vat_payer_async_api", "balance_api", "cults_api", "farmers_api"]
+# Python module name
+module-name = "anaf_api"
+# Binding type
+bindings = "pyo3"
+# Strip symbols for smaller binary
+strip = true
