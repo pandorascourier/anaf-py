@@ -8,6 +8,9 @@ mod python;
 #[cfg(feature = "php")]
 mod php;
 
+#[cfg(feature = "nodejs")]
+mod nodejs;
+
 pub use client::AnafClient;
 
 pub use apis::*;
